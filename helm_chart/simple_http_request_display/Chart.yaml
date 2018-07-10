@@ -1,0 +1,10 @@
+apiVersion: v1
+name: simple-http-request-display
+version: 0.0.1
+description: This is a very simple http echo program to listen a TCP port 8080 and return requester IP:Port (Not work behidn proxy).
+home: https://github.com/alantang888/simple_http_request_display
+sources:
+  - https://github.com/alantang888/simple_http_request_display
+maintainers:
+  - name: Alan Tang
+engine: gotpl

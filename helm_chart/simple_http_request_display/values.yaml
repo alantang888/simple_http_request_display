@@ -1,0 +1,7 @@
+image:
+  repository: alantang888/simple_http_request_display
+  tag: latest
+ingress:
+  hosts: []
+  annotations:
+    kubernetes.io/ingress.class: nginx
