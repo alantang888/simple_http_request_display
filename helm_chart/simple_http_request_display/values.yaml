@@ -2,6 +2,7 @@ image:
   repository: alantang888/simple_http_request_display
   tag: latest
 ingress:
+  # You have to override hosts. And put at least one host there. Otherwise will have Ingress config error.
   hosts: []
   annotations:
     kubernetes.io/ingress.class: nginx
