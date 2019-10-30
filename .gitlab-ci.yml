@@ -45,7 +45,7 @@ push-staging:
           containers:
             - name: ${CI_PROJECT_NAME}
               image: ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
-     EOF
+    EOF
   - kubectl patch --local -f kubernetes/${CI_PROJECT_NAME}/deployment.yaml -p "$(cat /tmp/patch.yaml)" > kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
