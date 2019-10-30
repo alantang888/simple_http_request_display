@@ -50,3 +50,6 @@ push-staging:
   - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
   - git push
+  - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+  - git log -2
+  - echo "Finished"
