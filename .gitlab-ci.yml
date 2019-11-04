@@ -1,5 +1,8 @@
 image: docker:latest
 
+services:
+- docker:dind
+
 stages:
 #- build
 - modify-deploy-repo
@@ -8,8 +11,6 @@ stages:
 #  stage: build
 #  except:
 #  - tags
-#  services:
-#  - docker:dind
 #  script:
 #  - apk add --no-cache curl jq python py-pip
 #  - pip install awscli
@@ -21,8 +22,6 @@ stages:
 #  stage: build
 #  only:
 #  - tags
-#  services:
-#  - docker:dind
 #  script:
 #    - apk add --no-cache curl jq python py-pip
 #    - pip install awscli
@@ -49,9 +48,8 @@ push-staging:
             - name: ${CI_PROJECT_NAME}
               image: ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
     EOF
-  - PATCH_CONTENT=$(cat /tmp/patch.yaml)
-  - echo $PATCH_CONTENT
-  - kubectl patch --local -f kubernetes/${CI_PROJECT_NAME}/deployment.yaml -p $PATCH_CONTENT -o yaml > kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+  - cat /tmp/patch.yaml
+  - kubectl patch --local -f kubernetes/${CI_PROJECT_NAME}/deployment.yaml -p "$(cat /tmp/patch.yaml)" -o yaml > kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
   - git push
