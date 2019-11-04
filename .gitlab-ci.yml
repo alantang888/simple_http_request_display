@@ -42,6 +42,8 @@ push-staging:
 #  - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/calipsa/kubernetes-infrastructure-staging.git
   - eval `ssh-agent -s`
   - chmod 600 $CI_RUNNER_SSH_PRIVATE
+  - cat $CI_RUNNER_SSH_PRIVATE
+  - echo $CI_RUNNER_SSH_PRIVATE
   - ssh-add $CI_RUNNER_SSH_PRIVATE
   - git clone git@gitlab.com:calipsa/kubernetes-infrastructure-staging.git
   - cd kubernetes-infrastructure-staging
