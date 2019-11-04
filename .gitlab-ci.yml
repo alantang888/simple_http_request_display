@@ -54,6 +54,8 @@ push-staging:
 #  - 'kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" --type="json" -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/image\", \"value\":\"${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}\"}]" -o yaml > kubernetes/${CI_PROJECT_NAME}/deployment.yaml'
   - yq w -i kubernetes/simple-http-request-display/deployment.yaml spec.template.spec.containers[0].image ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
   - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+  - git config --global user.name "CI Runner"
+  - git config --global user.email "no-reply-ci@calipsa.io"
   - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
   - git push
   - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
