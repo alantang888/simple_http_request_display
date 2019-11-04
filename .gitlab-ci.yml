@@ -30,28 +30,29 @@ stages:
 #    - docker push ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
 
 push-staging:
-  image: alantang888/kubectl_git:0.1
+  image: alantang888/kubectl_git:0.2
   stage: modify-deploy-repo
   except:
   - tags
   script:
   - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/calipsa/kubernetes-infrastructure-staging.git
   - cd kubernetes-infrastructure-staging
-  - echo "kubernetes/${CI_PROJECT_NAME}/deployment.yaml"
-  - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
-  - |
-    cat << EOF > /tmp/patch.yaml
-    spec:
-      template:
-        spec:
-          containers:
-            - name: ${CI_PROJECT_NAME}
-              image: ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
-    EOF
-  - cat /tmp/patch.yaml
-  - ls -l
-  - kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" -p "$(cat /tmp/patch.yaml)" -o yaml > kubernetes/simple-http-request-display/deployment.yaml
+#  - echo "kubernetes/${CI_PROJECT_NAME}/deployment.yaml"
+#  - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+#  - |
+#    cat << EOF > /tmp/patch.yaml
+#    spec:
+#      template:
+#        spec:
+#          containers:
+#            - name: ${CI_PROJECT_NAME}
+#              image: ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
+#    EOF
+#  - cat /tmp/patch.yaml
+#  - ls -l
+#  - kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" -p "$(cat /tmp/patch.yaml)" -o yaml > kubernetes/simple-http-request-display/deployment.yaml
 #  - 'kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" --type="json" -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/image\", \"value\":\"${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}\"}]" -o yaml > kubernetes/${CI_PROJECT_NAME}/deployment.yaml'
+  - yq w -i kubernetes/simple-http-request-display/deployment.yaml spec.template.spec.containers[0].image ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
   - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
   - git push
