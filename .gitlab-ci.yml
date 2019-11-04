@@ -39,18 +39,19 @@ push-staging:
   - cd kubernetes-infrastructure-staging
   - echo "kubernetes/${CI_PROJECT_NAME}/deployment.yaml"
   - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
-#  - |
-#    cat << EOF > /tmp/patch.yaml
-#    spec:
-#      template:
-#        spec:
-#          containers:
-#            - name: ${CI_PROJECT_NAME}
-#              image: ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
-#    EOF
-#  - cat /tmp/patch.yaml
+  - |
+    cat << EOF > /tmp/patch.yaml
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ${CI_PROJECT_NAME}
+              image: ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
+    EOF
+  - cat /tmp/patch.yaml
   - ls -l
-  - 'kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" --type="json" -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/image\", \"value\":\"${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}\"}]" -o yaml > kubernetes/${CI_PROJECT_NAME}/deployment.yaml'
+  - kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" -p "$(cat /tmp/patch.yaml)" -o yaml > kubernetes/simple-http-request-display/deployment.yaml
+#  - 'kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" --type="json" -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/image\", \"value\":\"${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}\"}]" -o yaml > kubernetes/${CI_PROJECT_NAME}/deployment.yaml'
   - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
   - git push
