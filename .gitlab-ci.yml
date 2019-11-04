@@ -1,7 +1,7 @@
 image: docker:latest
 
-services:
-- docker:dind
+#services:
+#- docker:dind
 
 stages:
 #- build
@@ -11,6 +11,8 @@ stages:
 #  stage: build
 #  except:
 #  - tags
+#  services:
+#  - docker:dind
 #  script:
 #  - apk add --no-cache curl jq python py-pip
 #  - pip install awscli
@@ -22,6 +24,8 @@ stages:
 #  stage: build
 #  only:
 #  - tags
+#  services:
+#  - docker:dind
 #  script:
 #    - apk add --no-cache curl jq python py-pip
 #    - pip install awscli
@@ -30,12 +34,15 @@ stages:
 #    - docker push ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
 
 push-staging:
-  image: alantang888/kubectl_git:0.2
+  image: alantang888/kubectl_git:0.3
   stage: modify-deploy-repo
   except:
   - tags
   script:
-  - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/calipsa/kubernetes-infrastructure-staging.git
+#  - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/calipsa/kubernetes-infrastructure-staging.git
+  - eval `ssh-agent -s`
+  - ssh-add $CI_RUNNER_SSH_PRIVATE
+  - git clone git@gitlab.com:calipsa/kubernetes-infrastructure-staging.git
   - cd kubernetes-infrastructure-staging
 #  - echo "kubernetes/${CI_PROJECT_NAME}/deployment.yaml"
 #  - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
@@ -53,11 +60,11 @@ push-staging:
 #  - kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" -p "$(cat /tmp/patch.yaml)" -o yaml > kubernetes/simple-http-request-display/deployment.yaml
 #  - 'kubectl patch --local -f "kubernetes/simple-http-request-display/deployment.yaml" --type="json" -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/image\", \"value\":\"${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}\"}]" -o yaml > kubernetes/${CI_PROJECT_NAME}/deployment.yaml'
   - yq w -i kubernetes/simple-http-request-display/deployment.yaml spec.template.spec.containers[0].image ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
-  - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
-  - git config --global user.name "CI Runner"
-  - git config --global user.email "no-reply-ci@calipsa.io"
-  - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
-  - git push
   - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+  - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+  - git config --global user.name "${GITLAB_USER_NAME}"
+  - git config --global user.email "${GITLAB_USER_EMAIL}"
+  - git commit -m "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_SHA}"
   - git log -2
+  - git push
   - echo "Finished"
