@@ -37,8 +37,8 @@ push-staging:
   script:
   - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/calipsa/kubernetes-infrastructure-staging.git
   - cd kubernetes-infrastructure-staging
-#  - echo "kubernetes/${CI_PROJECT_NAME}/deployment.yaml"
-#  - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+  - echo "kubernetes/${CI_PROJECT_NAME}/deployment.yaml"
+  - cat kubernetes/${CI_PROJECT_NAME}/deployment.yaml
 #  - |
 #    cat << EOF > /tmp/patch.yaml
 #    spec:
