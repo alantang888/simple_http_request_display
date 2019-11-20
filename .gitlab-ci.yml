@@ -145,6 +145,6 @@ create-mr-to-prod-k8s:
   - git config --global user.name "${GITLAB_USER_NAME}"
   - git config --global user.email "${GITLAB_USER_EMAIL}"
   - git commit -m "${COMMIT_MSG}"
-  - git push -u origin ${PR_BRANCH}
+  - git push -u origin master:${PR_BRANCH}
   - |
     curl -H "Content-Type: application/json" -d "{\"id\": \"${CI_PROJECT_ID}\", \"source_branch\": \"${PR_BRANCH}\", \"target_branch\": \"master\", \"title\": \"${COMMIT_MSG}\"}" -X POST https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/merge_requests
