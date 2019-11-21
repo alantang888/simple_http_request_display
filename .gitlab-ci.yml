@@ -157,7 +157,9 @@ create-pr-to-prod-k8s-github:
   only:
   - tags
   script:
-  - export HUB_CONFIG="~/.config/hub"
+  - mkdir /config
+  - cp ${GITHUB_TOKEN} /config/hub
+  - export HUB_CONFIG=/config/hub
   - hub config --global credential.https://github.com.helper /usr/local/bin/hub-credential-helper
   - hub config --global hub.protocol https
   - hub config --global user.name "Google Container Builder"
