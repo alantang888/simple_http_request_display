@@ -169,4 +169,4 @@ create-pr-to-prod-k8s-github:
   - hub add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - hub commit -m "${COMMIT_MSG}"
   - hub push -u origin master:${PR_BRANCH}
-  - hub pull-request -F "${COMMIT_MSG}"
+  - hub pull-request -m "${COMMIT_MSG}"
