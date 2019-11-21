@@ -1,49 +1,49 @@
 image: docker:latest
 
 stages:
-- build
+#- build
 - modify-deploy-repo
 
 variables:
   PR_BRANCH: "update-deployment-${CI_COMMIT_SHA}-${CI_CONCURRENT_PROJECT_ID}"
 
-build-staging:
-  stage: build
-  except:
-  - tags
-  services:
-  - docker:dind
-  variables:
-    AWS_ACCESS_KEY_ID: ${NON_PROD_AWS_ACCESS_KEY_ID}
-    AWS_SECRET_ACCESS_KEY: ${NON_PROD_AWS_SECRET_ACCESS_KEY}
-  script:
-  - apk add --no-cache curl jq python py-pip
-  - pip install awscli
-  - $(aws ecr get-login --no-include-email --region eu-west-1)
-  - docker build -t ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA} .
-  - docker push ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
-  - cat $STAGING_GCP_TOKEN | docker login -u _json_key --password-stdin https://gcr.io
-  - docker tag ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA} ${STAGING_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
-  - docker push ${STAGING_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
-
-build-tag:
-  stage: build
-  only:
-  - tags
-  services:
-  - docker:dind
-  variables:
-    AWS_ACCESS_KEY_ID: ${PROD_AWS_ACCESS_KEY_ID}
-    AWS_SECRET_ACCESS_KEY: ${PROD_AWS_SECRET_ACCESS_KEY}
-  script:
-    - apk add --no-cache curl jq python py-pip
-    - pip install awscli
-    - $(aws ecr get-login --no-include-email --region eu-west-1)
-    - docker build -t ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
-    - docker push ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
-    - cat $PROD_GCP_TOKEN | docker login -u _json_key --password-stdin https://gcr.io
-    - docker tag ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} ${PROD_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
-    - docker push ${PROD_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
+#build-staging:
+#  stage: build
+#  except:
+#  - tags
+#  services:
+#  - docker:dind
+#  variables:
+#    AWS_ACCESS_KEY_ID: ${NON_PROD_AWS_ACCESS_KEY_ID}
+#    AWS_SECRET_ACCESS_KEY: ${NON_PROD_AWS_SECRET_ACCESS_KEY}
+#  script:
+#  - apk add --no-cache curl jq python py-pip
+#  - pip install awscli
+#  - $(aws ecr get-login --no-include-email --region eu-west-1)
+#  - docker build -t ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA} .
+#  - docker push ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
+#  - cat $STAGING_GCP_TOKEN | docker login -u _json_key --password-stdin https://gcr.io
+#  - docker tag ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA} ${STAGING_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
+#  - docker push ${STAGING_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}
+#
+#build-tag:
+#  stage: build
+#  only:
+#  - tags
+#  services:
+#  - docker:dind
+#  variables:
+#    AWS_ACCESS_KEY_ID: ${PROD_AWS_ACCESS_KEY_ID}
+#    AWS_SECRET_ACCESS_KEY: ${PROD_AWS_SECRET_ACCESS_KEY}
+#  script:
+#    - apk add --no-cache curl jq python py-pip
+#    - pip install awscli
+#    - $(aws ecr get-login --no-include-email --region eu-west-1)
+#    - docker build -t ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
+#    - docker push ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
+#    - cat $PROD_GCP_TOKEN | docker login -u _json_key --password-stdin https://gcr.io
+#    - docker tag ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} ${PROD_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
+#    - docker push ${PROD_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
 
 push-staging-k8s:
   image: alantang888/kubectl_git:0.4
@@ -149,7 +149,7 @@ create-mr-to-prod-k8s:
   - |
     curl -s -H "Private-Token: ${CALIPSADEPLOY_TOKEN}" -H "Content-Type: application/json" -d "{\"source_branch\": \"${PR_BRANCH}\", \"target_branch\": \"master\", \"title\": \"${COMMIT_MSG}\"}" -X POST https://gitlab.com/api/v4/projects/calipsa%2Fkubernetes-infrastructure-production/merge_requests
 
-create-mr-to-prod-k8s-github:
+create-pr-to-prod-k8s-github:
   image: alantang888/kubectl_git:0.4
   stage: modify-deploy-repo
   variables:
@@ -157,11 +157,13 @@ create-mr-to-prod-k8s-github:
   only:
   - tags
   script:
-  - hub config --global credential.https://github.com.helper $GITHUB_TOKEN
+  - echo ${GITHUB_TOKEN}
+  - cat ${GITHUB_TOKEN}
+  - hub config --global credential.https://github.com.helper ${GITHUB_TOKEN}
   - hub config --global hub.protocol https
   - hub config --global user.name "${GITLAB_USER_NAME}"
   - hub config --global user.email "${GITLAB_USER_EMAIL}"
-  - hub clone "calipsa/kubernetes-infrastructure-production"
+  - hub clone "https://github.com/calipsa/kubernetes-infrastructure-production.git"
   - cd kubernetes-infrastructure-production
   - yq w -i kubernetes/${CI_PROJECT_NAME}/deployment.yaml spec.template.spec.containers[0].image ${PROD_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
   - hub add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
