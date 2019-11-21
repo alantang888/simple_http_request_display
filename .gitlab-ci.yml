@@ -158,7 +158,7 @@ create-pr-to-prod-k8s-github:
   - tags
   script:
   - mkdir /config
-  - cp ${GITHUB_TOKEN} /config/hub
+  - cp ${GITHUB_OAUTH_TOKEN} /config/hub
   - export HUB_CONFIG=/config/hub
   - hub config --global credential.https://github.com.helper /usr/local/bin/hub-credential-helper
   - hub config --global hub.protocol https
