@@ -140,11 +140,31 @@ create-mr-to-prod-k8s:
   - ssh-add $CI_RUNNER_SSH_PRIVATE
   - git clone git@gitlab.com:calipsa/kubernetes-infrastructure-production.git
   - cd kubernetes-infrastructure-production
-  - yq w -i kubernetes/${CI_PROJECT_NAME}/deployment.yaml spec.template.spec.containers[0].image ${STAGING_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
+  - yq w -i kubernetes/${CI_PROJECT_NAME}/deployment.yaml spec.template.spec.containers[0].image ${PROD_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
   - git add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
   - git config --global user.name "${GITLAB_USER_NAME}"
   - git config --global user.email "${GITLAB_USER_EMAIL}"
   - git commit -m "${COMMIT_MSG}"
   - git push -u origin master:${PR_BRANCH}
   - |
-    curl -H "Private-Token: ${CALIPSADEPLOY_TOKEN}" -H "Content-Type: application/json" -d "{\"source_branch\": \"${PR_BRANCH}\", \"target_branch\": \"master\", \"title\": \"${COMMIT_MSG}\"}" -X POST https://gitlab.com/api/v4/projects/calipsa%2Fkubernetes-infrastructure-production/merge_requests
+    curl -s -H "Private-Token: ${CALIPSADEPLOY_TOKEN}" -H "Content-Type: application/json" -d "{\"source_branch\": \"${PR_BRANCH}\", \"target_branch\": \"master\", \"title\": \"${COMMIT_MSG}\"}" -X POST https://gitlab.com/api/v4/projects/calipsa%2Fkubernetes-infrastructure-production/merge_requests
+
+create-mr-to-prod-k8s-github:
+  image: alantang888/kubectl_git:0.4
+  stage: modify-deploy-repo
+  variables:
+    COMMIT_MSG: "Update ${CI_PROJECT_NAME} image to ${CI_COMMIT_TAG}"
+  only:
+  - tags
+  script:
+  - hub config --global credential.https://github.com.helper $GITHUB_TOKEN
+  - hub config --global hub.protocol https
+  - hub config --global user.name "${GITLAB_USER_NAME}"
+  - hub config --global user.email "${GITLAB_USER_EMAIL}"
+  - hub clone "calipsa/kubernetes-infrastructure-production"
+  - cd kubernetes-infrastructure-production
+  - yq w -i kubernetes/${CI_PROJECT_NAME}/deployment.yaml spec.template.spec.containers[0].image ${PROD_GCP_DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG}
+  - hub add kubernetes/${CI_PROJECT_NAME}/deployment.yaml
+  - hub commit -m "${COMMIT_MSG}"
+  - hub push -u origin master:${PR_BRANCH}
+  - hub pull-request -F "${COMMIT_MSG}"
