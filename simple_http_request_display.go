@@ -1,13 +1,15 @@
 package main
 
 import (
-	"net/http"
-	"log"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
 	"strings"
 )
 
-func requestHandler (w http.ResponseWriter, r *http.Request){
+func requestHandler(w http.ResponseWriter, r *http.Request) {
 	//buffer := bytes.Buffer{}
 	buffer := strings.Builder{}
 	buffer.WriteString(fmt.Sprintf("Client from %v, request path: %v\n", r.RemoteAddr, r.URL.Path))
@@ -37,7 +39,11 @@ func requestHandler (w http.ResponseWriter, r *http.Request){
 }
 
 func main() {
-	listenPort := 8080
+	listenPortStr := os.Getenv("SERVER_PORT")
+	listenPort, err := strconv.Atoi(listenPortStr)
+	if err != nil {
+		listenPort = 8080
+	}
 	fmt.Printf("Will try to listen on http://0.0.0.0:%[1]d. You may try on http://127.0.0.1:%[1]d", listenPort)
 	http.HandleFunc("/", requestHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil))
