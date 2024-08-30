@@ -1,9 +1,8 @@
-FROM golang:1.23
+FROM golang:1.23-bullseye
 
-WORKDIR /go/src/app
+WORKDIR /app
 COPY . .
 
-RUN go get -d -v ./...
-RUN go install -v ./...
+RUN go build -o /bin/simple_http_request_display ./cmd/simple_http_request_display
 
-CMD ["app"]
+CMD ["/bin/simple_http_request_display"]
