@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +14,10 @@ import (
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 	//buffer := bytes.Buffer{}
 	buffer := strings.Builder{}
+	banner := os.Getenv("BANNER")
+	if banner != "" {
+		buffer.WriteString(fmt.Sprintf("%s\n", banner))
+	}
 	buffer.WriteString(fmt.Sprintf("Client from %v, request path: %v\n", r.RemoteAddr, r.URL.Path))
 	buffer.WriteString("==================================================================\n\n")
 
@@ -30,6 +36,16 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		for key, value := range headers {
 			buffer.WriteString(fmt.Sprintf("\tHeader[\"%v\"]: %v\n", key, value))
 		}
+		buffer.WriteString("==================================================================\n\n")
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		buffer.WriteString(fmt.Sprintf("Get body error: %s\n\n", err.Error()))
+	} else if len(body) > 0 {
+		buffer.WriteString("Body's base64:\n")
+		buffer.WriteString("==================================================================\n")
+		buffer.WriteString(base64.StdEncoding.EncodeToString(body))
 		buffer.WriteString("==================================================================\n\n")
 	}
 
