@@ -46,7 +46,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		buffer.WriteString("Body's base64:\n")
 		buffer.WriteString("==================================================================\n")
 		buffer.WriteString(base64.StdEncoding.EncodeToString(body))
-		buffer.WriteString("==================================================================\n\n")
+		buffer.WriteString("\n==================================================================\n\n")
 	}
 
 	message := buffer.String()
